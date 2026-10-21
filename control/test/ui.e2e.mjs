@@ -48,7 +48,8 @@ try {
   assert.equal(s.received.filter((h) => h.startsWith("00 59 22")).length, 0,
     "nothing is written to the pedal just by connecting");
   assert.equal(await page.locator("#chain .block").count(), 6);
-  assert.match(await page.locator("#chain .block select").nth(1).inputValue(), /\d/);
+  // names are optional and read once the state has arrived
+  await page.waitForFunction(() => window.bfx.names.amp && window.bfx.names.cab, null, { timeout: 12000 });
   assert.ok((await page.locator("#chain .block select").nth(1).innerText()).includes("SimAmp-1"),
     "amp names read from the pedal");
 
@@ -111,6 +112,18 @@ try {
   assert.equal(after.slice(load + 1).filter((h) => h.startsWith("00 59 22 0A")).length, 0,
     "no stale knobs sent after the preset change");
   assert.ok(s.synced);
+
+  // a pedal that never answers gets a clear message, not silence
+  const silent = await browser.newPage();
+  silent.on("pageerror", (e) => errors.push(e.message));
+  await silent.goto(url + "?sim=silent");
+  await silent.click("#btnSim");
+  await silent.waitForFunction(() => document.getElementById("status").dataset.state === "err",
+    null, { timeout: 9000 });
+  assert.match(await silent.locator("#status").innerText(), /isn't answering/);
+  assert.ok(await silent.locator("details.log").evaluate((d) => d.open), "activity log opened");
+  const silentSim = await silent.evaluate(() => window.bfx.transport.received);
+  assert.equal(silentSim.filter((h) => h.startsWith("00 59 22")).length, 0, "still nothing written");
 
   assert.deepEqual(errors, [], "no page errors");
   console.log(`ui e2e passed (${s.received.length} packets exchanged)`);
