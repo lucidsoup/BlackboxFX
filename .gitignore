@@ -1,0 +1,8 @@
+build*/
+demo/
+*.wav
+__pycache__/
+# never commit vendor firmware or dumps
+*.bin
+*.ufw
+*.fw
