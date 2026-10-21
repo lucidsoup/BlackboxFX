@@ -22,6 +22,13 @@ in ─► LOOPER(pre) ─► CHARACTER ─► MOVEMENT ─► CLOUD ─► TAPE 
 | **SPACE** | 8-line feedback delay network reverb with modulation, damping and a shimmer that stays stable at any setting |
 | **LOOPER** | Record, overdub, play, stop, reverse and half-speed, before or after the effects |
 
+## Control the stock pedal now
+
+[`control/`](control/README.md) is a browser app that drives the BlackBox's
+own effects over USB or Bluetooth: tempo-synced modulation of any knob,
+morphing between two sounds, scenes and chain reordering. It makes live
+changes only and never touches firmware.
+
 ## Try it
 
 ```bash
@@ -73,6 +80,7 @@ python3 tools/probe/blackbox_probe.py --json blackbox.json
 | `src/` | Engine (portable C99) |
 | `host/` | Desktop command-line renderer and WAV I/O |
 | `tests/` | Engine tests: transparency, silence, stability, tail decay, looper, pitch, delay timing, determinism |
+| `control/` | Browser control app (USB + Bluetooth) for the stock firmware |
 | `tools/probe/` | Read-only USB probe for the BlackBox |
 | `docs/HARDWARE.md` | What's known about the device and the path to flashing |
 

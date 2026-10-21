@@ -45,3 +45,17 @@ jobs:
       - run: cmake --build build
       - run: ./build/test_engine
       - run: python3 -m py_compile tools/probe/blackbox_probe.py
+
+  control:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: control
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm install --no-save playwright@1.56.1 && npx playwright install --with-deps chromium
+      - run: npm run test:e2e
