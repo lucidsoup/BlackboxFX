@@ -125,6 +125,42 @@ try {
   const silentSim = await silent.evaluate(() => window.bfx.transport.received);
   assert.equal(silentSim.filter((h) => h.startsWith("00 59 22")).length, 0, "still nothing written");
 
+  // Bluetooth: an empty picker explains itself and offers the unfiltered list
+  const ble = await browser.newPage();
+  ble.on("pageerror", (e) => errors.push(e.message));
+  await ble.addInitScript(() => {
+    window.__bleCalls = [];
+    const fakeDevice = {
+      name: "Some Speaker",
+      addEventListener() {},
+      gatt: {
+        connected: true,
+        disconnect() { this.connected = false; },
+        async connect() {
+          return { async getPrimaryService() { throw new DOMException("No Services matching UUID", "NotFoundError"); } };
+        },
+      },
+    };
+    Object.defineProperty(Navigator.prototype, "bluetooth", { configurable: true, get: () => ({
+      async requestDevice(opts) {
+        window.__bleCalls.push(opts);
+        if (opts.acceptAllDevices) return fakeDevice;
+        throw new DOMException("User cancelled the requestDevice() chooser.", "NotFoundError");
+      },
+    }) });
+  });
+  await ble.goto(url);
+  assert.ok(await ble.locator("#btnBleAll").isHidden(), "show-all hidden at first");
+  await ble.click("#btnBle");
+  await ble.waitForSelector("#btnBleAll", { state: "visible" });
+  assert.match(await ble.locator("#status").innerText(), /Location/);
+  await ble.click("#btnBleAll");
+  await ble.waitForFunction(() => /isn't a BlackBox/.test(document.getElementById("status").textContent));
+  const calls = await ble.evaluate(() => window.__bleCalls);
+  assert.ok(calls[0].filters.some((f) => f.namePrefix === "BlackBox"), "first try filters by name");
+  assert.equal(calls[1].acceptAllDevices, true, "show-all lists everything");
+  assert.ok(calls[1].optionalServices.length === 1, "and still asks for the control service");
+
   assert.deepEqual(errors, [], "no page errors");
   console.log(`ui e2e passed (${s.received.length} packets exchanged)`);
 } finally {
