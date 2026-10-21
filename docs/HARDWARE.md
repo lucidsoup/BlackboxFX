@@ -21,6 +21,15 @@ Source: [jakino0/mvave-blackbox-reverse-engineering](https://github.com/jakino0/
 | No known software route into a recovery bootloader | current conclusion |
 | App control protocol (M-EFCS over BLE/USB) can read the preset bank, current patch (92 bytes) and a few state bytes, not arbitrary RAM | verified |
 
+### Cross-checked against the official package
+
+The official `BlackBox.fwsc` update (version tag `BlackBox_020`, SHA-256
+`c0fef191...26cb08`) was checked offline against the facts above. The JLFS
+`app` entry is 655,712 bytes, `audio_dev` sits at app offset `0x5BC1A`, and
+both USB Audio endpoint descriptors are at `0x5C3F0` / `0x5C424`, exactly as
+documented. Vendor firmware and anything derived from it stay out of this
+repository.
+
 ## What that means for custom firmware
 
 BlackboxFX replaces the whole audio application. That is only sensible once
