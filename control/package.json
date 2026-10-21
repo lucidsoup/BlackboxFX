@@ -1,0 +1,9 @@
+{
+  "name": "blackboxfx-control",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:e2e": "node test/ui.e2e.mjs"
+  }
+}
