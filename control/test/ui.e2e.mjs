@@ -103,9 +103,13 @@ try {
   await page.click("#presetNext");
   await page.waitForTimeout(800);
   s = await sim();
+  // routine polls or an in-flight morph write may precede the load; what
+  // matters is that no knob write follows it before the new state is read
   const after = s.received.slice(before);
-  assert.ok(after[0].startsWith("00 59 22 09 00 00 04 01 00 00 E0 01"), "load preset P02");
-  assert.equal(after.filter((h) => h.startsWith("00 59 22 0A")).length, 0, "no stale knobs sent");
+  const load = after.findIndex((h) => h.startsWith("00 59 22 09 00 00 04 01 00 00 E0 01"));
+  assert.ok(load >= 0, `load preset P02 sent (got ${after.join(" | ")})`);
+  assert.equal(after.slice(load + 1).filter((h) => h.startsWith("00 59 22 0A")).length, 0,
+    "no stale knobs sent after the preset change");
   assert.ok(s.synced);
 
   assert.deepEqual(errors, [], "no page errors");
